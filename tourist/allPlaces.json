@@ -1,0 +1,150 @@
+[
+  {
+    "id": "f01",
+    "name": "Husk",
+    "subtitle": "Modern Southern cuisine in a historic mansion",
+    "imageName": "husk",
+    "category": "Food",
+    "type": "Southern",
+    "latitude": 32.7791,
+    "longitude": -79.9347,
+    "phone": "8435772500",
+    "dealAvailable": false,
+    "featured": true,
+    "hours": "Mon-Sun: 11am-10pm"
+  },
+  {
+    "id": "f02",
+    "name": "167 Raw",
+    "subtitle": "Seafood bar with oysters and lobster rolls",
+    "imageName": "167raw",
+    "category": "Food",
+    "type": "Seafood",
+    "latitude": 32.7793,
+    "longitude": -79.9301,
+    "phone": "8435794997",
+    "dealAvailable": true,
+    "featured": false,
+    "hours": "Mon-Sun: 11am-10pm"
+  },
+  {
+    "id": "f03",
+    "name": "Xiao Bao Biscuit",
+    "subtitle": "Asian fusion with bold flavors in a cool setting",
+    "imageName": "xiaobao",
+    "category": "Food",
+    "type": "Chinese",
+    "latitude": 32.7905,
+    "longitude": -79.9487,
+    "phone": "8436378030",
+    "dealAvailable": false,
+    "featured": false,
+    "hours": "Mon-Sun: 11am-10pm",
+    "hours": "Mon-Sun: 11am-10pm"
+  },
+  {
+    "id": "f04",
+    "name": "Leon’s Oyster Shop",
+    "subtitle": "Southern-style fried chicken & oysters",
+    "imageName": "leons",
+    "category": "Food",
+    "type": "Southern",
+    "latitude": 32.8006,
+    "longitude": -79.9516,
+    "phone": "8435316500",
+    "dealAvailable": true,
+    "featured": false,
+    "hours": "Mon-Sun: 11am-10pm"
+  },
+  {
+    "id": "f05",
+    "name": "Indaco",
+    "subtitle": "Rustic Italian eats & wood-fired pizza",
+    "imageName": "indaco",
+    "category": "Food",
+    "type": "Italian",
+    "latitude": 32.7852,
+    "longitude": -79.9375,
+    "phone": "8437271228",
+    "dealAvailable": false,
+    "featured": true,
+    "hours": "Mon-Sun: 11am-10pm"
+  },
+  {
+    "id": "f06",
+    "name": "The Rarebit",
+    "subtitle": "Retro spot for burgers & brunch cocktails",
+    "imageName": "rarebit",
+    "category": "Food",
+    "type": "Bar Food",
+    "latitude": 32.7899,
+    "longitude": -79.9404,
+    "phone": "8439745483",
+    "dealAvailable": true,
+    "featured": false,
+    "hours": "Mon-Sun: 11am-10pm"
+  },
+  {
+    "id": "003",
+    "name": "Waterfront Park",
+    "subtitle": "Iconic pineapple fountain",
+    "imageName": "waterfront",
+    "category": "Things",
+    "latitude": 32.7791,
+    "longitude": -79.9261
+  },
+  {
+    "id": "004",
+    "name": "Fleet Landing Deal",
+    "subtitle": "$1 oysters + happy hour",
+    "imageName": "fleetlanding",
+    "category": "Deals",
+    "latitude": 32.7876,
+    "longitude": -79.9225
+  },
+  {
+    "id": "b01",
+    "name": "Folly Beach",
+    "subtitle": "Relaxed surf spot",
+    "imageName": "follybeach",
+    "category": "Beaches",
+    "latitude": 32.6557,
+    "longitude": -79.9409
+  },
+  {
+    "id": "b02",
+    "name": "Kiawah Island Beachwalker Park",
+    "subtitle": "Quiet and family-friendly",
+    "imageName": "kiawah",
+    "category": "Beaches",
+    "latitude": 32.6051,
+    "longitude": -80.1350
+  },
+  {
+    "id": "b03",
+    "name": "Isle of Palms",
+    "subtitle": "Family-friendly and scenic boardwalks",
+    "imageName": "isleofpalms",
+    "category": "Beaches",
+    "latitude": 32.7962,
+    "longitude": -79.7650
+  },
+  {
+    "id": "b04",
+    "name": "Seabrook Island",
+    "subtitle": "Private feel, nature trails",
+    "imageName": "seabrook",
+    "category": "Beaches",
+    "latitude": 32.5671,
+    "longitude": -80.1742
+  },
+  {
+    "id": "b05",
+    "name": "Edisto Beach",
+    "subtitle": "Remote and relaxing",
+    "imageName": "edisto",
+    "category": "Beaches",
+    "latitude": 32.4871,
+    "longitude": -80.3248
+  }
+]

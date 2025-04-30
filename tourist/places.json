@@ -1,0 +1,21 @@
+    [
+        {
+            "id": "36114dd0-dd04-4cf7-8e7e-20b587af8417",
+            "name": "Folly Beach",
+            "subtitle": "Relaxed surf spot",
+            "imageName": "follybeach"
+        },
+        {
+            "id": "594adab1-df6e-45f3-88f1-06e1131b9018",
+            "name": "Waterfront Park",
+            "subtitle": "Iconic fountain views",
+            "imageName": "waterfront"
+        },
+        {
+            "id": "67b17c04-b5e5-409b-b54a-395ea145c0a8",
+            "name": "Historic Downtown",
+            "subtitle": "Cobblestone streets & charm",
+            "imageName": "downtown"
+        }
+    ]
+
