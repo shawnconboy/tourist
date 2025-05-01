@@ -1,0 +1,37 @@
+[
+  {
+    "id": "001",
+    "title": "Charleston Food Truck Festival",
+    "date": "May 18, 2025",
+    "location": "Riverfront Park",
+    "price": "Free"
+  },
+  {
+    "id": "002",
+    "title": "Jazz in the Park",
+    "date": "May 22, 2025",
+    "location": "Marion Square",
+    "price": "$10"
+  },
+  {
+    "id": "003",
+    "title": "Sunset Beach Yoga",
+    "date": "May 24, 2025",
+    "location": "Folly Beach",
+    "price": "$20"
+  },
+  {
+    "id": "004",
+    "title": "Charleston Farmers Market",
+    "date": "Every Saturday",
+    "location": "Marion Square",
+    "price": "Free"
+  },
+  {
+    "id": "005",
+    "title": "Historic Homes Walking Tour",
+    "date": "May 30, 2025",
+    "location": "Downtown Charleston",
+    "price": "$25"
+  }
+]

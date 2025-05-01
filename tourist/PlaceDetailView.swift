@@ -6,17 +6,17 @@ struct PlaceDetailView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 20) {
                 // Image
                 Image(place.imageName)
                     .resizable()
                     .scaledToFill()
                     .frame(height: 240)
                     .clipped()
-                    .cornerRadius(12)
+                    .cornerRadius(16)
 
-                // Title + Subtitle
-                VStack(alignment: .leading, spacing: 4) {
+                // Title & Subtitle
+                VStack(alignment: .leading, spacing: 6) {
                     Text(place.name)
                         .font(.title)
                         .fontWeight(.bold)
@@ -27,20 +27,20 @@ struct PlaceDetailView: View {
 
                     // Business Hours
                     if let hours = place.hours, !hours.isEmpty {
-                        HStack(alignment: .center, spacing: 6) {
+                        HStack(spacing: 6) {
                             Image(systemName: "clock")
                                 .foregroundColor(.accentColor)
-                            Text("Hours: ")
+                            Text("Hours:")
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
                             Text(hours)
                                 .font(.subheadline)
                         }
-                        .padding(.top, 6)
+                        .padding(.top, 4)
                     }
                 }
 
-                // Phone and Deal (if available)
+                // Phone Button (Optional)
                 if let phone = place.phone {
                     Button(action: {
                         if let url = URL(string: "tel://\(phone)") {
@@ -49,23 +49,25 @@ struct PlaceDetailView: View {
                     }) {
                         Label("Call", systemImage: "phone.fill")
                             .font(.body)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
 
+                // Deal Badge (Optional)
                 if place.dealAvailable == true {
                     HStack {
                         Image(systemName: "tag.fill")
-                            .foregroundColor(.white)
                         Text("Deal available!")
                             .fontWeight(.medium)
                     }
-                    .padding(8)
+                    .padding(10)
+                    .frame(maxWidth: .infinity)
                     .background(Color.green)
                     .foregroundColor(.white)
                     .cornerRadius(10)
                 }
 
-                // Map Preview using MapAnnotation
+                // Map
                 Map(coordinateRegion: .constant(MKCoordinateRegion(
                     center: place.coordinate,
                     span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
@@ -78,7 +80,6 @@ struct PlaceDetailView: View {
                 }
                 .frame(height: 200)
                 .cornerRadius(12)
-
             }
             .padding()
         }

@@ -1,7 +1,10 @@
 import SwiftUI
+import FirebaseAuth
+import FirebaseFirestore
 
 struct MainTabView: View {
     @State private var selectedTab = 0
+    @AppStorage("isAdmin") private var isAdmin = false
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -11,9 +14,9 @@ struct MainTabView: View {
                 }
                 .tag(0)
 
-            BeachListView()
+            DealsListView()
                 .tabItem {
-                    Label("Beaches", systemImage: "sun.max.fill")
+                    Label("Deals & Promos", systemImage: "flame.fill")
                 }
                 .tag(1)
 
@@ -23,23 +26,36 @@ struct MainTabView: View {
                 }
                 .tag(2)
 
+            BeachListView()
+                .tabItem {
+                    Label("Beaches", systemImage: "sun.max.fill")
+                }
+                .tag(3)
+
             ThingsListView()
                 .tabItem {
                     Label("Things To Do", systemImage: "star.fill")
                 }
-                .tag(3)
-
-            DealsListView()
-                .tabItem {
-                    Label("Deals", systemImage: "flame.fill")
-                }
                 .tag(4)
 
-            MapListView()
+            MapsListView(selectedTab: $selectedTab)
                 .tabItem {
                     Label("Map", systemImage: "map.fill")
                 }
                 .tag(5)
+
+            SettingsView()
+                .tabItem {
+                    Label("Settings", systemImage: "gear")
+                }
+                .tag(6)
+        }
+        .onAppear {
+            let userID = Auth.auth().currentUser?.uid ?? UUID().uuidString
+            ReferralManager.shared.logInstallToFirestore(userID: userID)
+        }
+        .onOpenURL { url in
+            ReferralManager.shared.saveReferrerIfPresent(from: url)
         }
     }
 }

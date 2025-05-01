@@ -1,20 +1,16 @@
-//
-//  touristApp.swift
-//  tourist
-//
-//  Created by Shawn Conboy on 4/30/25.
-//
-
 import SwiftUI
+import Firebase
 
 @main
 struct touristApp: App {
-    let persistenceController = PersistenceController.shared
+    init() {
+        FirebaseApp.configure()
+    }
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            MainTabView()
+                .preferredColorScheme(.light) // 👈 Forces light mode only
         }
     }
 }

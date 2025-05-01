@@ -1,7 +1,9 @@
 import SwiftUI
 import MapKit
 
-struct MapListView: View {
+struct MapsListView: View {
+    @Binding var selectedTab: Int
+
     @State private var places: [Place] = []
     @State private var region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 32.7765, longitude: -79.9311),
@@ -12,7 +14,7 @@ struct MapListView: View {
         GeometryReader { geo in
             VStack(spacing: 0) {
                 ZStack {
-                    Color.clear // Ensure ZStack fills area
+                    Color.clear
 
                     Map(initialPosition: .region(region)) {
                         ForEach(places) { place in

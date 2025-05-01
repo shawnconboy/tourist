@@ -3,7 +3,8 @@ import SwiftUI
 struct HomeView: View {
     @Binding var selectedTab: Int
     @State private var featured: [Place] = []
-    
+    @State private var events: [Event] = []
+
     var body: some View {
         NavigationView {
             ScrollView {
@@ -11,98 +12,108 @@ struct HomeView: View {
                     // Header
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Welcome to Charleston")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
+                            .titleStyle()
                         Text("Discover beaches, bites, and adventures with our curated guide.")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .subtitleStyle()
                     }
-                    .padding(.horizontal)
+                    .padding(.horizontal, Layout.horizontalPadding)
                     .padding(.top)
-                    
-                    // Category Shortcuts
+
+                    // Top Shortcut Row
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 16) {
-                            ForEach(QuickCategory.allCases, id: \.self) { category in
+                            ForEach(TopShortcut.allCases, id: \.self) { shortcut in
                                 Button(action: {
-                                    selectedTab = category.tabIndex
+                                    selectedTab = shortcut.tabIndex
                                 }) {
-                                    VStack(spacing: 8) {
-                                        Image(systemName: category.icon)
-                                            .font(.title2)
-                                            .padding()
-                                            .background(Color.green.opacity(0.15))
+                                    VStack(spacing: 10) {
+                                        Image(systemName: shortcut.icon)
+                                            .font(.system(size: 28))
+                                            .foregroundColor(.white)
+                                            .frame(width: 52, height: 52)
+                                            .background(shortcut.color)
                                             .clipShape(Circle())
-                                        Text(category.rawValue)
+
+                                        Text(shortcut.title)
                                             .font(.caption)
+                                            .foregroundColor(.white)
+                                            .multilineTextAlignment(.center)
+                                            .lineLimit(2)
+                                            .frame(width: 70)
                                     }
+                                    .padding()
+                                    .frame(width: 90, height: 110)
+                                    .background(Theme.darkBlue)
+                                    .cornerRadius(Layout.cornerRadius)
                                 }
+                                .buttonStyle(PlainButtonStyle())
                             }
                         }
-                        .padding(.horizontal)
+                        .padding(.horizontal, Layout.horizontalPadding)
                     }
-                    
+
                     // Featured Section
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Places to Visit")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                            .padding(.horizontal)
-                        
+                            .sectionTitleStyle()
+
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 16) {
                                 ForEach(featured) { place in
                                     FeaturedPlaceCard(place: place)
                                 }
                             }
-                            .padding(.horizontal)
+                            .padding(.horizontal, Layout.horizontalPadding)
                         }
                     }
-                    
-                    // Widget-style Grid Tiles
+
+                    // Live Events Section
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Explore by Category")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                            .padding(.horizontal)
-                        
-                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                            ForEach(HomeTile.sampleTiles) { tile in
-                                Button(action: {
-                                    selectedTab = tile.tabIndex
-                                }) {
-                                    VStack(spacing: 12) {
-                                        Image(systemName: tile.image)
-                                            .font(.system(size: 28))
-                                            .frame(width: 50, height: 50)
-                                            .background(tile.color.opacity(0.15))
-                                            .clipShape(Circle())
-                                        Text(tile.title)
+                        Text("Live Events")
+                            .sectionTitleStyle()
+                            .padding(.horizontal, Layout.horizontalPadding)
+
+                        ForEach(events) { event in
+                            NavigationLink(destination: EventDetailView(event: event)) {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text(event.title)
+                                        .font(.headline)
+
+                                    HStack {
+                                        Text(event.date)
                                             .font(.subheadline)
-                                            .fontWeight(.medium)
+                                            .foregroundColor(.secondary)
+                                        Spacer()
+                                        Text(event.location)
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
                                     }
-                                    .padding()
-                                    .frame(maxWidth: .infinity)
-                                    .background(Color(.systemBackground))
-                                    .cornerRadius(14)
-                                    .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 4)
+
+                                    Text(event.price)
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
                                 }
+                                .padding()
+                                .background(Color(.systemBackground))
+                                .cornerRadius(12)
+                                .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
                             }
+                            .buttonStyle(PlainButtonStyle())
+                            .padding(.horizontal, Layout.horizontalPadding)
                         }
-                        .padding(.horizontal)
                     }
-                    
+
                     Spacer(minLength: 40)
                 }
             }
             .navigationTitle("Home")
             .onAppear {
                 featured = loadFeaturedPlaces()
+                events = loadEvents()
             }
         }
     }
-    
-    // JSON loader
+
     func loadFeaturedPlaces() -> [Place] {
         guard let url = Bundle.main.url(forResource: "allPlaces", withExtension: "json"),
               let data = try? Data(contentsOf: url),
@@ -111,14 +122,19 @@ struct HomeView: View {
         }
         return decoded
     }
-    
-    
-    
-    
-    // MARK: - Featured Place Card using Place model
+
+    func loadEvents() -> [Event] {
+        guard let url = Bundle.main.url(forResource: "events", withExtension: "json"),
+              let data = try? Data(contentsOf: url),
+              let decoded = try? JSONDecoder().decode([Event].self, from: data) else {
+            return []
+        }
+        return decoded
+    }
+
     struct FeaturedPlaceCard: View {
         let place: Place
-        
+
         var body: some View {
             NavigationLink(destination: PlaceDetailView(place: place)) {
                 VStack(alignment: .leading, spacing: 6) {
@@ -127,8 +143,8 @@ struct HomeView: View {
                         .scaledToFill()
                         .frame(width: 240, height: 140)
                         .clipped()
-                        .cornerRadius(14)
-                    
+                        .cornerRadius(Layout.cornerRadius)
+
                     Text(place.name)
                         .font(.headline)
                     Text(place.subtitle)
@@ -140,45 +156,52 @@ struct HomeView: View {
             .buttonStyle(PlainButtonStyle())
         }
     }
-    // MARK: - Category shortcuts
-    enum QuickCategory: String, CaseIterable, Hashable {
-        case bars = "Bars"
-        case restaurants = "Restaurants"
-        case beaches = "Beaches"
-        case history = "History"
-        
+
+    enum TopShortcut: CaseIterable {
+        case deals, food, beaches, things
+
+        var title: String {
+            switch self {
+            case .deals: return "Deals"
+            case .food: return "Food & Drink"
+            case .beaches: return "Beaches"
+            case .things: return "Things To Do"
+            }
+        }
+
         var icon: String {
             switch self {
-            case .bars: return "wineglass.fill"
-            case .restaurants: return "fork.knife"
+            case .deals: return "flame.fill"
+            case .food: return "fork.knife"
             case .beaches: return "sun.max.fill"
-            case .history: return "book.fill"
+            case .things: return "star.fill"
             }
         }
-        
+
+        var color: Color {
+            switch self {
+            case .deals: return .green
+            case .food: return .orange
+            case .beaches: return .blue
+            case .things: return .purple
+            }
+        }
+
         var tabIndex: Int {
             switch self {
-            case .bars, .restaurants: return 2
-            case .beaches: return 1
-            case .history: return 3
+            case .deals: return 1
+            case .food: return 2
+            case .beaches: return 3
+            case .things: return 4
             }
         }
     }
-    
-    // MARK: - Widget-style tiles
-    struct HomeTile: Identifiable {
-        let id = UUID()
-        let title: String
-        let image: String
-        let color: Color
-        let tabIndex: Int
-        
-        static let sampleTiles: [HomeTile] = [
-            .init(title: "Beaches", image: "sun.max.fill", color: .blue, tabIndex: 1),
-            .init(title: "Food & Drink", image: "fork.knife", color: .orange, tabIndex: 2),
-            .init(title: "Things To Do", image: "star.fill", color: .purple, tabIndex: 3),
-            .init(title: "Deals", image: "flame.fill", color: .green, tabIndex: 4),
-            .init(title: "Map", image: "map.fill", color: .pink, tabIndex: 5)
-        ]
-    }
+}
+
+struct Event: Identifiable, Codable {
+    let id: String
+    let title: String
+    let date: String
+    let location: String
+    let price: String
 }
