@@ -145,13 +145,24 @@ struct HomeView: View {
                         .clipped()
                         .cornerRadius(Layout.cornerRadius)
 
-                    Text(place.name)
-                        .font(.headline)
-                    Text(place.subtitle)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(place.name)
+                            .font(.headline)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+
+                        Text(place.subtitle)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
-                .frame(width: 240)
+                .padding(.bottom, 8)
+                .frame(width: 240, alignment: .leading)
+                .background(Color(.systemBackground))
+                .cornerRadius(Layout.cornerRadius)
+                .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
             }
             .buttonStyle(PlainButtonStyle())
         }

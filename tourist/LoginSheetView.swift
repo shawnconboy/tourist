@@ -1,46 +1,90 @@
 import SwiftUI
 import FirebaseAuth
-import FirebaseFirestore
 
 struct LoginSheetView: View {
     @Binding var showLoginSheet: Bool
-    var onSuccess: () -> Void = {}
+    var onSuccess: () -> Void
 
     @State private var email = ""
     @State private var password = ""
-    @State private var errorMessage: String?
-    @AppStorage("isAdmin") private var isAdmin = false
+    @State private var errorMessage = ""
+
+    @FocusState private var focusedField: Field?
+
+    enum Field {
+        case email
+        case password
+    }
 
     var body: some View {
         NavigationView {
-            VStack(spacing: 20) {
+            VStack(spacing: 24) {
                 Text("Admin Login")
-                    .font(.title)
+                    .font(.title2)
+                    .bold()
 
+                // Email Field
                 TextField("Email", text: $email)
-                    .textFieldStyle(.roundedBorder)
+                    .keyboardType(.emailAddress)
                     .autocapitalization(.none)
+                    // Removed .textContentType to prevent autofill interference
+                    .focused($focusedField, equals: .email)
+                    .submitLabel(.next)
+                    .onSubmit {
+                        focusedField = .password
+                    }
+                    .onChange(of: focusedField) { newField in
+                        if newField != .email {
+                            // Place to add email validation if needed (after focus leaves)
+                            print("Finished typing email: \(email)")
+                        }
+                    }
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(10)
+                    .padding(.horizontal)
 
+                // Password Field
                 SecureField("Password", text: $password)
-                    .textFieldStyle(.roundedBorder)
+                    .focused($focusedField, equals: .password)
+                    .submitLabel(.go)
+                    .onSubmit {
+                        login()
+                    }
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(10)
+                    .padding(.horizontal)
 
-                if let errorMessage = errorMessage {
+                // Error message if login fails
+                if !errorMessage.isEmpty {
                     Text(errorMessage)
                         .foregroundColor(.red)
-                        .font(.footnote)
+                        .font(.caption)
                 }
 
+                // Login Button
                 Button("Login") {
                     login()
                 }
-                .buttonStyle(.borderedProminent)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.blue)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+                .padding(.horizontal)
 
                 Spacer()
             }
             .padding()
-            .navigationBarItems(trailing: Button("Close") {
+            .navigationBarItems(trailing: Button("Cancel") {
                 showLoginSheet = false
             })
+            .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    focusedField = .email
+                }
+            }
         }
     }
 
@@ -48,25 +92,10 @@ struct LoginSheetView: View {
         Auth.auth().signIn(withEmail: email, password: password) { result, error in
             if let error = error {
                 self.errorMessage = error.localizedDescription
-                return
-            }
-
-            guard let user = result?.user else {
-                self.errorMessage = "Login failed."
-                return
-            }
-
-            let db = Firestore.firestore()
-            db.collection("admins").document(user.uid).getDocument { doc, err in
-                if let doc = doc, doc.exists,
-                   let isAdminFlag = doc.data()?["isAdmin"] as? Bool, isAdminFlag == true {
-                    print("✅ Admin access granted.")
-                    self.isAdmin = true
-                    self.showLoginSheet = false
-                    self.onSuccess()
-                } else {
-                    self.errorMessage = "Not authorized as admin."
-                }
+            } else {
+                UserDefaults.standard.set(true, forKey: "isAdmin")
+                showLoginSheet = false
+                onSuccess()
             }
         }
     }
