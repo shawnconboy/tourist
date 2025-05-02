@@ -1,11 +1,13 @@
 import SwiftUI
 import FirebaseAuth
+import FirebaseFirestore
 
 struct DriverLoginView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var errorMessage: String?
     @State private var isLoggedIn = false
+    @State private var currentDriver: DriverStats?
 
     var body: some View {
         NavigationView {
@@ -42,7 +44,11 @@ struct DriverLoginView: View {
             .padding()
             .navigationBarHidden(true)
             .fullScreenCover(isPresented: $isLoggedIn) {
-                DriverDashboardView()
+                if let driver = currentDriver {
+                    DriverDashboardView(driver: driver)
+                } else {
+                    ProgressView("Loading...")
+                }
             }
         }
     }
@@ -51,9 +57,25 @@ struct DriverLoginView: View {
         Auth.auth().signIn(withEmail: email, password: password) { result, error in
             if let error = error {
                 self.errorMessage = "Login failed: \(error.localizedDescription)"
-            } else {
-                self.errorMessage = nil
+            } else if let user = result?.user {
+                fetchDriverData(for: user.uid)
+            }
+        }
+    }
+
+    func fetchDriverData(for uid: String) {
+        Firestore.firestore().collection("drivers").document(uid).getDocument { snapshot, error in
+            if let data = snapshot?.data() {
+                let driver = DriverStats(
+                    id: snapshot?.documentID ?? uid,
+                    name: data["name"] as? String ?? "(No name)",
+                    referrals: data["referrals"] as? Int ?? 0,
+                    redemptions: data["redemptions"] as? Int ?? 0
+                )
+                self.currentDriver = driver
                 self.isLoggedIn = true
+            } else {
+                self.errorMessage = "Driver data not found."
             }
         }
     }

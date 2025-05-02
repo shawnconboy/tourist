@@ -1,64 +1,112 @@
 import SwiftUI
-import FirebaseAuth
-import FirebaseFirestore
 
 struct DriverDashboardView: View {
-    @Environment(\.dismiss) var dismiss
-    @State private var referralCount = 0
-    @State private var email = Auth.auth().currentUser?.email ?? "Driver"
-    @State private var db = Firestore.firestore()
+    let driver: DriverStats
+
+    // Simulated payout history (replace with Firestore later)
+    let payoutHistory: [PayoutRecord] = [
+        PayoutRecord(date: "Apr 15, 2025", amount: 50, reason: "10 referrals", status: "Paid"),
+        PayoutRecord(date: "Mar 20, 2025", amount: 25, reason: "5 redemptions", status: "Paid")
+    ]
+
+    var referralThreshold = 10
+    var redemptionThreshold = 5
 
     var body: some View {
         NavigationView {
-            VStack(spacing: 24) {
-                Text("Welcome, \(email)")
-                    .font(.headline)
-
-                VStack(spacing: 8) {
-                    Text("Referral QR Code")
-                        .font(.subheadline)
-                    QRCodeView(text: "https://yourapp.page.link/?ref=\(referralID)")
-                        .frame(width: 200, height: 200)
-                }
-
-                VStack {
-                    Text("Referrals: \(referralCount)")
-                        .font(.title2)
+            ScrollView {
+                VStack(spacing: 24) {
+                    Text("Driver Dashboard")
+                        .font(.title)
                         .bold()
-                }
 
-                Button("Log Out") {
-                    try? Auth.auth().signOut()
-                    dismiss()
-                }
-                .foregroundColor(.red)
-                .padding(.top, 32)
+                    VStack(spacing: 8) {
+                        Text(driver.name)
+                            .font(.title3)
+                        Text("ID: \(driver.id)")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
 
-                Spacer()
+                    Divider()
+
+                    VStack(spacing: 16) {
+                        // Referral Info
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Referrals: \(driver.referrals) / \(referralThreshold)")
+                                .bold()
+                            ProgressView(value: Double(driver.referrals), total: Double(referralThreshold))
+                        }
+
+                        // Redemption Info
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Redemptions: \(driver.redemptions) / \(redemptionThreshold)")
+                                .bold()
+                            ProgressView(value: Double(driver.redemptions), total: Double(redemptionThreshold))
+                        }
+
+                        // Eligibility
+                        VStack {
+                            if isEligible {
+                                Text("🎉 You're eligible for your bonus!")
+                                    .font(.headline)
+                                    .foregroundColor(.green)
+                            } else {
+                                Text("Keep going! Reach the goal for a payout.")
+                                    .font(.subheadline)
+                                    .foregroundColor(.orange)
+                            }
+                        }
+                    }
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(12)
+
+                    // Payout History
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Payout History")
+                            .font(.headline)
+
+                        ForEach(payoutHistory) { record in
+                            VStack(alignment: .leading) {
+                                HStack {
+                                    Text(record.date)
+                                    Spacer()
+                                    Text("$\(record.amount, specifier: "%.2f")")
+                                }
+                                .font(.subheadline)
+
+                                Text(record.reason)
+                                    .font(.caption)
+
+                                Text("Status: \(record.status)")
+                                    .font(.caption2)
+                                    .foregroundColor(.gray)
+                            }
+                            .padding()
+                            .background(Color.white)
+                            .cornerRadius(8)
+                            .shadow(radius: 1)
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+                .padding()
             }
-            .padding()
-            .navigationTitle("Driver Dashboard")
+            .navigationTitle("Your Bonuses")
             .navigationBarTitleDisplayMode(.inline)
-            .onAppear {
-                loadReferralStats()
-            }
         }
     }
 
-    var referralID: String {
-        return email.components(separatedBy: "@").first ?? "driver"
+    var isEligible: Bool {
+        driver.referrals >= referralThreshold || driver.redemptions >= redemptionThreshold
     }
+}
 
-    func loadReferralStats() {
-        let docRef = db.collection("drivers").document(referralID)
-
-        docRef.getDocument { document, error in
-            if let document = document, document.exists {
-                let data = document.data()
-                self.referralCount = data?["referrals"] as? Int ?? 0
-            } else {
-                print("No driver doc found or error: \(error?.localizedDescription ?? "Unknown error")")
-            }
-        }
-    }
+struct PayoutRecord: Identifiable {
+    let id = UUID()
+    let date: String
+    let amount: Double
+    let reason: String
+    let status: String
 }

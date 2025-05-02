@@ -8,12 +8,9 @@ struct SettingsView: View {
 
     @State private var drivers: [DriverStats] = []
     @State private var showAddDriverSheet = false
-    @State private var newDriverName = ""
-    @State private var showDriverList = false
 
     @State private var showEditSheet = false
     @State private var editingDriverID: String?
-    @State private var updatedName = ""
 
     @State private var showQRDialog = false
     @State private var qrDriverID = ""
@@ -21,17 +18,36 @@ struct SettingsView: View {
     @State private var showToast = false
     @State private var toastMessage = ""
 
+    @State private var showDriverDashboard = false
+    @State private var showDriverListSheet = false
+
+    @State private var currentDriver = DriverStats(id: "sample123", name: "Sample Driver", referrals: 8, redemptions: 3)
+
     var body: some View {
         NavigationView {
             ZStack {
                 Form {
-                    Section(header: Text("App Info")) {
-                        Text("Version 1.0")
+                    Section(header: Text("Driver Access")) {
+                        Button("Track Your Bonuses") {
+                            showDriverDashboard = true
+
+                            let testID = "8642223333"
+                            Firestore.firestore().collection("drivers").document(testID).updateData([
+                                "referrals": FieldValue.increment(Int64(1))
+                            ]) { error in
+                                if let error = error {
+                                    print("❌ Test failed: \(error.localizedDescription)")
+                                } else {
+                                    print("✅ Test referral added")
+                                    fetchDrivers()
+                                }
+                            }
+                        }
                     }
 
                     Section(header: Text("Admin Access")) {
                         if isAdmin {
-                            Text("✅ Admin Access Granted")
+                            Text("\u{2705} Admin Access Granted")
                                 .foregroundColor(.green)
 
                             Button("Logout Admin") {
@@ -43,49 +59,9 @@ struct SettingsView: View {
                                 showAddDriverSheet = true
                             }
 
-                            Button(showDriverList ? "Hide Drivers" : "See Drivers") {
-                                showDriverList.toggle()
-                            }
-
-                            if showDriverList {
-                                List {
-                                    ForEach(drivers) { driver in
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            Text(driver.name)
-                                                .font(.headline)
-
-                                            HStack {
-                                                Text("Referrals: \(driver.referrals)")
-                                                Spacer()
-                                                Text("Redemptions: \(driver.redemptions)")
-                                            }
-                                            .font(.subheadline)
-                                            .foregroundColor(.gray)
-                                        }
-                                        .padding(.vertical, 6)
-                                        .contentShape(Rectangle())
-                                        .onLongPressGesture {
-                                            qrDriverID = driver.id
-                                            showQRDialog = true
-                                        }
-                                        .swipeActions(edge: .trailing) {
-                                            Button {
-                                                editingDriverID = driver.id
-                                                updatedName = driver.name
-                                                showEditSheet = true
-                                            } label: {
-                                                Label("Edit", systemImage: "pencil")
-                                            }
-                                            .tint(.blue)
-
-                                            Button(role: .destructive) {
-                                                deleteDriverByID(driverID: driver.id)
-                                            } label: {
-                                                Label("Delete", systemImage: "trash")
-                                            }
-                                        }
-                                    }
-                                }
+                            Button("See Drivers") {
+                                fetchDrivers()
+                                showDriverListSheet = true
                             }
                         } else {
                             Button("Login as Admin") {
@@ -93,9 +69,12 @@ struct SettingsView: View {
                             }
                         }
                     }
+
+                    Section(header: Text("App Info")) {
+                        Text("Version 1.0")
+                    }
                 }
 
-                // Toast Message
                 if showToast {
                     VStack {
                         Spacer()
@@ -126,33 +105,22 @@ struct SettingsView: View {
 
             .sheet(isPresented: $showAddDriverSheet) {
                 NavigationView {
-                    VStack(spacing: 24) {
-                        Text("Enter New Driver")
-                            .font(.title2)
-                            .bold()
-                            .padding(.top)
-
-                        TextField("Driver Name", text: $newDriverName)
-                            .padding()
-                            .background(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.blue, lineWidth: 1.5)
-                            )
-                            .padding(.horizontal)
-
-                        Button("Add Driver") {
-                            addDriver()
+                    AddDriverFormView { first, last, number in
+                        let fullName = "\(first) \(last)"
+                        let id = number
+                        Firestore.firestore().collection("drivers").document(id).setData([
+                            "name": fullName,
+                            "referrals": 0,
+                            "redemptions": 0
+                        ]) { error in
+                            if error == nil {
+                                fetchDrivers()
+                                showAddDriverSheet = false
+                                showToastMessage("Driver added!")
+                            }
                         }
-                        .disabled(newDriverName.isEmpty)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                        .padding(.horizontal)
-
-                        Spacer()
                     }
+                    .navigationTitle("Add New Driver")
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
@@ -165,41 +133,35 @@ struct SettingsView: View {
             }
 
             .sheet(isPresented: $showEditSheet) {
-                NavigationView {
-                    VStack(spacing: 24) {
-                        Text("Edit Driver Name")
-                            .font(.title2)
-                            .bold()
-                            .padding(.top)
+                if let id = editingDriverID, let driver = drivers.first(where: { $0.id == id }) {
+                    NavigationView {
+                        EditDriverFormView(driver: driver) { newFirst, newLast, newID in
+                            let fullName = "\(newFirst) \(newLast)"
 
-                        TextField("New Name", text: $updatedName)
-                            .padding()
-                            .background(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.blue, lineWidth: 1.5)
-                            )
-                            .padding(.horizontal)
-
-                        Button("Save") {
-                            if let id = editingDriverID {
-                                updateDriverName(driverID: id, newName: updatedName)
+                            if newID == driver.id {
+                                updateDriverName(driverID: driver.id, newName: fullName)
+                            } else {
+                                Firestore.firestore().collection("drivers").document(newID).setData([
+                                    "name": fullName,
+                                    "referrals": driver.referrals,
+                                    "redemptions": driver.redemptions
+                                ]) { error in
+                                    if error == nil {
+                                        deleteDriverByID(driverID: driver.id)
+                                        fetchDrivers()
+                                        showToastMessage("Driver ID updated")
+                                        showEditSheet = false
+                                    }
+                                }
                             }
                         }
-                        .disabled(updatedName.isEmpty)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                        .padding(.horizontal)
-
-                        Spacer()
-                    }
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Cancel") {
-                                showEditSheet = false
+                        .navigationTitle("Edit Driver")
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("Cancel") {
+                                    showEditSheet = false
+                                }
                             }
                         }
                     }
@@ -214,15 +176,47 @@ struct SettingsView: View {
                 VStack(spacing: 12) {
                     Text("Driver: \(qrDriverID)")
                         .font(.headline)
-                    QRCodeView(text: "https://shawnconboy.github.io/touristapp-referral/?ref=\(qrDriverID)")
-                        .frame(width: 180, height: 180)
-                        .padding(.vertical, 8)
+
+                    let link = "https://shawnconboy.github.io/touristapp-referral/?ref=\(qrDriverID)"
+                    if let image = generateQRCodeImage(link) {
+                        Image(uiImage: image)
+                            .resizable()
+                            .interpolation(.none)
+                            .frame(width: 180, height: 180)
+                            .padding(.vertical, 8)
+
+                        ShareLink(item: Image(uiImage: image), preview: SharePreview("Driver QR", image: Image(uiImage: image))) {
+                            Label("Share QR Code", systemImage: "square.and.arrow.up")
+                        }
+                    } else {
+                        Text("Unable to generate QR")
+                            .foregroundColor(.red)
+                    }
                 }
+            }
+
+            .sheet(isPresented: $showDriverDashboard) {
+                DriverDashboardView(driver: currentDriver)
+            }
+
+            .sheet(isPresented: $showDriverListSheet) {
+                DriverListSheet(
+                    drivers: drivers,
+                    onUpdate: {
+                        fetchDrivers()
+                        showToastMessage("Driver updated")
+                    },
+                    onDelete: { id in
+                        deleteDriverByID(driverID: id)
+                    },
+                    onLongPressQR: { id in
+                        qrDriverID = id
+                        showQRDialog = true
+                    }
+                )
             }
         }
     }
-
-    // MARK: - Firestore Actions
 
     func fetchDrivers() {
         Firestore.firestore().collection("drivers").getDocuments { snapshot, error in
@@ -236,22 +230,6 @@ struct SettingsView: View {
                         redemptions: data["redemptions"] as? Int ?? 0
                     )
                 }
-            }
-        }
-    }
-
-    func addDriver() {
-        let id = String(UUID().uuidString.prefix(8))
-        Firestore.firestore().collection("drivers").document(id).setData([
-            "name": newDriverName,
-            "referrals": 0,
-            "redemptions": 0
-        ]) { error in
-            if error == nil {
-                fetchDrivers()
-                newDriverName = ""
-                showAddDriverSheet = false
-                showToastMessage("Driver added!")
             }
         }
     }
@@ -284,6 +262,20 @@ struct SettingsView: View {
                 showToast = false
             }
         }
+    }
+
+    func generateQRCodeImage(_ string: String) -> UIImage? {
+        let context = CIContext()
+        let filter = CIFilter.qrCodeGenerator()
+        filter.setValue(Data(string.utf8), forKey: "inputMessage")
+
+        if let outputImage = filter.outputImage {
+            let scaledImage = outputImage.transformed(by: CGAffineTransform(scaleX: 10, y: 10))
+            if let cgimg = context.createCGImage(scaledImage, from: scaledImage.extent) {
+                return UIImage(cgImage: cgimg)
+            }
+        }
+        return nil
     }
 }
 
