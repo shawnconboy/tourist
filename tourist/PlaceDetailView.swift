@@ -1,18 +1,7 @@
 import SwiftUI
-import MapKit
 
 struct PlaceDetailView: View {
     let place: Place
-
-    @State private var region: MKCoordinateRegion
-
-    init(place: Place) {
-        self.place = place
-        _region = State(initialValue: MKCoordinateRegion(
-            center: place.coordinate,
-            span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
-        ))
-    }
 
     var body: some View {
         ScrollView {
@@ -71,12 +60,21 @@ struct PlaceDetailView: View {
                     .cornerRadius(10)
                 }
 
-                // Map
-                Map(initialPosition: .region(region)) {
-                    Marker(place.name, coordinate: place.coordinate)
+                // Address + Map Button
+                if let address = place.address {
+                    Label(address, systemImage: "mappin.and.ellipse")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+
+                    Button(action: {
+                        if let url = URL(string: "http://maps.apple.com/?address=\(address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")") {
+                            UIApplication.shared.open(url)
+                        }
+                    }) {
+                        Label("Open in Maps", systemImage: "map")
+                    }
+                    .padding(.top, 4)
                 }
-                .frame(height: 200)
-                .cornerRadius(12)
             }
             .padding()
         }

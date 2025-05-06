@@ -7,15 +7,22 @@ struct Place: Identifiable, Codable {
     let subtitle: String
     let imageName: String
     let category: String
-    let type: String?           // Optional: e.g., Southern, Sushi
-    let latitude: Double
-    let longitude: Double
-    let hours: String?          // Optional: “9am - 10pm”
-    let phone: String?          // Optional: tap to call
-    let dealAvailable: Bool?    // Optional: Show deal banner
-    let featured: Bool?         // Optional: Use in homepage
+    let type: String?
+    let address: String?
+    let phone: String?
+    let dealAvailable: Bool?
+    let featured: Bool?
+    let hours: String?
+    let tags: [String]?
+
+    // Optional location support (some bars may have no coordinates)
+    let latitude: Double?
+    let longitude: Double?
 
     var coordinate: CLLocationCoordinate2D {
-        CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        CLLocationCoordinate2D(
+            latitude: latitude ?? 0.0,
+            longitude: longitude ?? 0.0
+        )
     }
 }

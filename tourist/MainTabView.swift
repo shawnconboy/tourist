@@ -38,12 +38,6 @@ struct MainTabView: View {
                 }
                 .tag(4)
 
-            MapsListView(selectedTab: $selectedTab)
-                .tabItem {
-                    Label("Map", systemImage: "map.fill")
-                }
-                .tag(5)
-
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gear")

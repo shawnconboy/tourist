@@ -28,12 +28,6 @@ struct ContentView: View {
                     Label("Deals", systemImage: "tag")
                 }
                 .tag(3)
-
-            MapsListView(selectedTab: $selectedTab)
-                .tabItem {
-                    Label("Map", systemImage: "map")
-                }
-                .tag(4)
         }
         .onOpenURL { url in
             ReferralManager.shared.saveReferrerIfPresent(from: url)
