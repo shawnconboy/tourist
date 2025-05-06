@@ -1,23 +1,95 @@
 import SwiftUI
+import Combine
 
 struct HomeView: View {
     @Binding var selectedTab: Int
     @State private var featured: [Place] = []
     @State private var events: [Event] = []
+    @State private var searchText = ""
+    @StateObject private var weatherService = WeatherService()
+
+    var matchingPlaces: [Place] {
+        if searchText.isEmpty { return [] }
+
+        let lowercasedQuery = searchText.lowercased()
+
+        return featured
+            .filter {
+                $0.name.localizedCaseInsensitiveContains(searchText) ||
+                ($0.tags?.contains(where: { $0.localizedCaseInsensitiveContains(searchText) }) ?? false)
+            }
+            .sorted {
+                let nameA = $0.name.lowercased()
+                let nameB = $1.name.lowercased()
+
+                let aStartsWith = nameA.hasPrefix(lowercasedQuery)
+                let bStartsWith = nameB.hasPrefix(lowercasedQuery)
+
+                if aStartsWith != bStartsWith {
+                    return aStartsWith
+                }
+
+                return nameA < nameB
+            }
+    }
 
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
-                    // Header
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Welcome to Charleston")
-                            .titleStyle()
-                        Text("Discover beaches, bites, and adventures with our curated guide.")
-                            .subtitleStyle()
+
+                    // Header with Weather
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Welcome to Charleston")
+                                .titleStyle()
+                            Text("Discover beaches, bites, and adventures with our curated guide.")
+                                .subtitleStyle()
+                        }
+                        Spacer()
+                        HStack(spacing: 4) {
+                            Image(systemName: weatherService.icon)
+                                .foregroundColor(.blue)
+                            Text(weatherService.temperature)
+                                .font(.subheadline)
+                        }
+                        .padding(8)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(10)
                     }
                     .padding(.horizontal, Layout.horizontalPadding)
                     .padding(.top)
+
+                    // Search Bar
+                    TextField("Search for restaurants, beaches, or bars", text: $searchText)
+                        .padding(12)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(10)
+                        .padding(.horizontal, Layout.horizontalPadding)
+
+                    // Search Suggestions
+                    if !matchingPlaces.isEmpty {
+                        VStack(alignment: .leading, spacing: 0) {
+                            ForEach(matchingPlaces) { place in
+                                NavigationLink(destination: PlaceDetailView(place: place)) {
+                                    HStack {
+                                        Text(place.name)
+                                            .foregroundColor(.primary)
+                                        Spacer()
+                                    }
+                                    .padding()
+                                    .background(Color(.systemBackground))
+                                }
+                                .buttonStyle(PlainButtonStyle())
+
+                                Divider()
+                            }
+                        }
+                        .background(Color(.systemGray5))
+                        .cornerRadius(10)
+                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                        .padding(.horizontal, Layout.horizontalPadding)
+                    }
 
                     // Top Shortcut Row
                     ScrollView(.horizontal, showsIndicators: false) {
@@ -110,6 +182,10 @@ struct HomeView: View {
             .onAppear {
                 featured = loadFeaturedPlaces()
                 events = loadEvents()
+                weatherService.fetchWeather(lat: 32.7765, lon: -79.9311) // Charleston
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .didNavigateToPlace)) { _ in
+                searchText = ""
             }
         }
     }
@@ -168,7 +244,7 @@ struct HomeView: View {
         }
     }
 
-    enum TopShortcut: CaseIterable {
+    enum TopShortcut: CaseIterable, Hashable {
         case deals, food, beaches, things
 
         var title: String {
@@ -215,4 +291,8 @@ struct Event: Identifiable, Codable {
     let date: String
     let location: String
     let price: String
+}
+
+extension Notification.Name {
+    static let didNavigateToPlace = Notification.Name("didNavigateToPlace")
 }

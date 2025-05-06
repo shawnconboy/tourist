@@ -80,5 +80,8 @@ struct PlaceDetailView: View {
         }
         .navigationTitle(place.name)
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            NotificationCenter.default.post(name: .didNavigateToPlace, object: nil)
+        }
     }
 }
