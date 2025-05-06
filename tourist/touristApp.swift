@@ -9,8 +9,8 @@ struct touristApp: App {
 
     var body: some Scene {
         WindowGroup {
-            MainTabView()
-                .preferredColorScheme(.light) // 👈 Forces light mode only
+            SplashView() // 👈 Launch splash first
+                .preferredColorScheme(.light)
         }
     }
 }
